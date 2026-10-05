@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Brainvita</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #D3DEEA;
+    --ink: #1A2333;
+    --muted: #4B5869;
+    --board: #B06D35;
+    --board-edge: #7A4520;
+    --hole: #3F220E;
+    --gold: #F2B630;
+    --btn: #1A2333;
+    --btn-ink: #F3F6FA;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111926; --ink: #E7EDF5; --muted: #98A6B8;
+      --board: #9A5C2B; --board-edge: #5E3416; --hole: #2A1608;
+      --btn: #E7EDF5; --btn-ink: #111926;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111926; --ink: #E7EDF5; --muted: #98A6B8;
+    --board: #9A5C2B; --board-edge: #5E3416; --hole: #2A1608;
+    --btn: #E7EDF5; --btn-ink: #111926;
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; min-height: 100%;
+    background: var(--bg); color: var(--ink);
+    font-family: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+    display: flex; justify-content: center;
+  }
+  main {
+    width: 100%; max-width: 520px;
+    padding: 24px 16px 32px;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+  h1 {
+    margin: 0; font-size: clamp(2.6rem, 9vw, 3.6rem);
+    font-weight: 800; line-height: 1; letter-spacing: -0.02em;
+  }
+  .rule { margin: 0; color: var(--muted); text-align: center; max-width: 34ch; line-height: 1.4; font-size: 1.05rem; }
+
+  .board {
+    --size: min(92vw, 460px);
+    width: var(--size); aspect-ratio: 1;
+    border-radius: 50%;
+    padding: calc(var(--size) * 0.09);
+    background:
+      repeating-linear-gradient(103deg, rgba(0,0,0,0.05) 0 3px, transparent 3px 11px),
+      radial-gradient(circle at 35% 30%, rgba(255,255,255,0.18), transparent 60%),
+      var(--board);
+    box-shadow: inset 0 0 0 6px var(--board-edge), inset 0 -10px 24px rgba(0,0,0,0.25), 0 14px 30px rgba(20,30,50,0.28);
+    display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(7, 1fr);
+    gap: 2%;
+  }
+  .cell { display: block; }
+  .hole {
+    position: relative; border: 0; padding: 0; cursor: pointer;
+    border-radius: 50%; background: var(--hole);
+    box-shadow: inset 0 3px 6px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.15);
+    width: 100%; height: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .hole:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .marble {
+    position: absolute; inset: 6%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, #ffffff 0 9%, #9ED8FF 20%, #2477C4 55%, #0A3463 100%);
+    box-shadow: 0 3px 4px rgba(0,0,0,0.45);
+    transform: scale(0); transition: transform 180ms cubic-bezier(.3,1.6,.6,1);
+  }
+  .hole.full .marble { transform: scale(1); }
+  .hole.selected .marble {
+    transform: scale(1.08) translateY(-3px);
+    box-shadow: 0 0 0 3px var(--gold), 0 8px 10px rgba(0,0,0,0.45);
+  }
+  .hole.target::after {
+    content: ""; position: absolute; inset: 34%;
+    border-radius: 50%; background: var(--gold);
+    animation: pulse 1s ease-in-out infinite alternate;
+  }
+  @keyframes pulse { from { opacity: .45; transform: scale(.8); } to { opacity: 1; transform: scale(1.1); } }
+
+  .bar { display: flex; align-items: center; justify-content: space-between; width: min(92vw, 460px); gap: 12px; flex-wrap: wrap; }
+  .count { font-size: 1.15rem; font-weight: 600; }
+  .count b { font-size: 1.6rem; font-weight: 800; }
+  .actions { display: flex; gap: 8px; }
+  button.act {
+    font: inherit; font-weight: 600; font-size: 1rem;
+    border: 2px solid var(--btn); border-radius: 999px;
+    padding: 6px 16px; cursor: pointer;
+    background: transparent; color: var(--ink);
+  }
+  button.act.primary { background: var(--btn); color: var(--btn-ink); }
+  button.act:disabled { opacity: .4; cursor: default; }
+  button.act:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .msg { min-height: 1.6em; margin: 0; font-size: 1.1rem; font-weight: 600; text-align: center; }
+  .best { margin: 0; color: var(--muted); font-size: .95rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marble { transition: none; }
+    .hole.target::after { animation: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Brainvita</h1>
+  <p class="rule">Jump a marble over its neighbour into an empty hole. The jumped marble comes off. End with one marble in the centre.</p>
+
+  <div class="board" id="board" role="grid" aria-label="Brainvita board"></div>
+
+  <div class="bar">
+    <div class="count">Marbles left <b id="count">32</b></div>
+    <div class="actions">
+      <button class="act" id="undo" type="button">Undo</button>
+      <button class="act primary" id="restart" type="button">New game</button>
+    </div>
+  </div>
+  <p class="msg" id="msg" aria-live="polite"></p>
+  <p class="best" id="best"></p>
+</main>
+
+<script>
+(function () {
+  const N = 7, C = 3;
+  const DIRS = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+  const isHole = (r, c) => r >= 0 && r < N && c >= 0 && c < N && ((r >= 2 && r <= 4) || (c >= 2 && c <= 4));
+
+  const boardEl = document.getElementById('board');
+  const countEl = document.getElementById('count');
+  const msgEl = document.getElementById('msg');
+  const bestEl = document.getElementById('best');
+  const undoBtn = document.getElementById('undo');
+
+  let board, history, sel, over;
+  const holes = [];
+
+  // Build the grid once; render() only toggles classes.
+  for (let r = 0; r < N; r++) {
+    holes[r] = [];
+    for (let c = 0; c < N; c++) {
+      if (!isHole(r, c)) {
+        const blank = document.createElement('span');
+        blank.className = 'cell';
+        boardEl.appendChild(blank);
+        continue;
+      }
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'hole';
+      b.innerHTML = '<span class="marble"></span>';
+      b.addEventListener('click', () => onTap(r, c));
+      boardEl.appendChild(b);
+      holes[r][c] = b;
+    }
+  }
+
+  function jumpsFrom(r, c) {
+    return DIRS
+      .map(([dr, dc]) => ({ tr: r + 2 * dr, tc: c + 2 * dc, mr: r + dr, mc: c + dc }))
+      .filter(m => isHole(m.tr, m.tc) && board[m.tr][m.tc] === 0 && board[m.mr][m.mc] === 1);
+  }
+
+  function anyJumps() {
+    for (let r = 0; r < N; r++)
+      for (let c = 0; c < N; c++)
+        if (isHole(r, c) && board[r][c] === 1 && jumpsFrom(r, c).length) return true;
+    return false;
+  }
+
+  function marblesLeft() {
+    let n = 0;
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (board[r][c] === 1) n++;
+    return n;
+  }
+
+  function newGame() {
+    board = Array.from({ length: N }, (_, r) => Array.from({ length: N }, (_, c) => isHole(r, c) ? 1 : -1));
+    board[C][C] = 0;
+    history = []; sel = null; over = false;
+    msgEl.textContent = 'Tap a marble to pick it up.';
+    render();
+  }
+
+  function onTap(r, c) {
+    if (over) return;
+    if (board[r][c] === 1) {
+      if (sel && sel.r === r && sel.c === c) { sel = null; msgEl.textContent = ''; }
+      else if (jumpsFrom(r, c).length) { sel = { r, c }; msgEl.textContent = 'Now tap a glowing hole.'; }
+      else { sel = null; msgEl.textContent = "That marble has no jump right now."; }
+      render();
+      return;
+    }
+    if (board[r][c] === 0 && sel) {
+      const m = jumpsFrom(sel.r, sel.c).find(j => j.tr === r && j.tc === c);
+      if (!m) { msgEl.textContent = 'Pick a glowing hole, or tap another marble.'; return; }
+      history.push(board.map(row => row.slice()));
+      board[sel.r][sel.c] = 0;
+      board[m.mr][m.mc] = 0;
+      board[r][c] = 1;
+      // Keep the moved marble selected if it can chain another jump.
+      sel = jumpsFrom(r, c).length ? { r, c } : null;
+      msgEl.textContent = '';
+      checkEnd();
+      render();
+    }
+  }
+
+  function verdict(n, centre) {
+    if (n === 1 && centre) return 'Genius. One marble, dead centre.';
+    if (n === 1) return 'One marble left. Now try to finish in the centre.';
+    if (n === 2) return 'Two left. Excellent, almost there.';
+    if (n === 3) return 'Three left. Very good.';
+    if (n <= 5) return n + ' left. Good game, try again?';
+    return n + ' marbles left and no jumps. Undo or start again.';
+  }
+
+  function checkEnd() {
+    if (anyJumps()) return;
+    over = true; sel = null;
+    const n = marblesLeft();
+    msgEl.textContent = verdict(n, board[C][C] === 1);
+    saveBest(n);
+  }
+
+  function getBest() {
+    try { const v = parseInt(localStorage.getItem('brainvita-best'), 10); return isNaN(v) ? null : v; }
+    catch (e) { return null; }
+  }
+  function saveBest(n) {
+    const b = getBest();
+    if (b === null || n < b) { try { localStorage.setItem('brainvita-best', String(n)); } catch (e) {} }
+  }
+
+  function render() {
+    const targets = sel ? jumpsFrom(sel.r, sel.c) : [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const h = holes[r][c]; if (!h) continue;
+      const full = board[r][c] === 1;
+      const isSel = !!sel && sel.r === r && sel.c === c;
+      const isTarget = targets.some(t => t.tr === r && t.tc === c);
+      h.classList.toggle('full', full);
+      h.classList.toggle('selected', isSel);
+      h.classList.toggle('target', isTarget);
+      h.setAttribute('aria-label',
+        'Row ' + (r + 1) + ', column ' + (c + 1) + ': ' +
+        (full ? (isSel ? 'marble, picked up' : 'marble') : (isTarget ? 'empty, you can jump here' : 'empty')));
+    }
+    countEl.textContent = marblesLeft();
+    undoBtn.disabled = history.length === 0;
+    const b = getBest();
+    bestEl.textContent = b === null ? '' : 'Your best: ' + b + (b === 1 ? ' marble' : ' marbles') + ' left';
+  }
+
+  undoBtn.addEventListener('click', () => {
+    if (!history.length) return;
+    board = history.pop(); sel = null; over = false;
+    msgEl.textContent = 'Move undone.';
+    render();
+  });
+  document.getElementById('restart').addEventListener('click', newGame);
+
+  newGame();
+})();
+</script>
+</body>
+</html>
