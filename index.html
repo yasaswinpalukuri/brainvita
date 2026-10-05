@@ -9,15 +9,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #D3DEEA;
-    --ink: #1A2333;
-    --muted: #4B5869;
-    --board: #B06D35;
-    --board-edge: #7A4520;
-    --hole: #3F220E;
-    --gold: #F2B630;
-    --btn: #1A2333;
-    --btn-ink: #F3F6FA;
+    --bg: #D3DEEA; --ink: #1A2333; --muted: #4B5869;
+    --board: #B06D35; --board-edge: #7A4520; --hole: #3F220E;
+    --gold: #F2B630; --btn: #1A2333; --btn-ink: #F3F6FA;
+    --panel: #E6EDF5; --line: #B7C4D3; --good: #2E7D4F;
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -26,13 +21,13 @@
     :root:not([data-theme="light"]) {
       --bg: #111926; --ink: #E7EDF5; --muted: #98A6B8;
       --board: #9A5C2B; --board-edge: #5E3416; --hole: #2A1608;
-      --btn: #E7EDF5; --btn-ink: #111926;
+      --btn: #E7EDF5; --btn-ink: #111926; --panel: #1B2638; --line: #33445C; --good: #6FD39A;
     }
   }
   :root[data-theme="dark"] {
     --bg: #111926; --ink: #E7EDF5; --muted: #98A6B8;
     --board: #9A5C2B; --board-edge: #5E3416; --hole: #2A1608;
-    --btn: #E7EDF5; --btn-ink: #111926;
+    --btn: #E7EDF5; --btn-ink: #111926; --panel: #1B2638; --line: #33445C; --good: #6FD39A;
   }
   *, *::before, *::after { box-sizing: inherit; }
   html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
@@ -44,71 +39,98 @@
   }
   main {
     width: 100%; max-width: 520px;
-    padding: 24px 16px 32px;
+    padding: 24px 16px 40px;
     display: flex; flex-direction: column; align-items: center; gap: 14px;
   }
-  h1 {
-    margin: 0; font-size: clamp(2.6rem, 9vw, 3.6rem);
-    font-weight: 800; line-height: 1; letter-spacing: -0.02em;
-  }
+  h1 { margin: 0; font-size: clamp(2.6rem, 9vw, 3.6rem); font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+  h2 { margin: 0; font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
   .rule { margin: 0; color: var(--muted); text-align: center; max-width: 34ch; line-height: 1.4; font-size: 1.05rem; }
+  .player { margin: 0; font-size: 1.1rem; }
+  .player b { font-weight: 800; }
+  .linkish { font: inherit; background: none; border: 0; padding: 0 2px; color: var(--muted); text-decoration: underline; cursor: pointer; }
 
   .board {
     --size: min(92vw, 460px);
-    width: var(--size); aspect-ratio: 1;
-    border-radius: 50%;
+    width: var(--size); aspect-ratio: 1; border-radius: 50%;
     padding: calc(var(--size) * 0.09);
     background:
       repeating-linear-gradient(103deg, rgba(0,0,0,0.05) 0 3px, transparent 3px 11px),
       radial-gradient(circle at 35% 30%, rgba(255,255,255,0.18), transparent 60%),
       var(--board);
     box-shadow: inset 0 0 0 6px var(--board-edge), inset 0 -10px 24px rgba(0,0,0,0.25), 0 14px 30px rgba(20,30,50,0.28);
-    display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(7, 1fr);
-    gap: 2%;
+    display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(7, 1fr); gap: 2%;
   }
   .cell { display: block; }
   .hole {
-    position: relative; border: 0; padding: 0; cursor: pointer;
-    border-radius: 50%; background: var(--hole);
+    position: relative; border: 0; padding: 0; cursor: pointer; border-radius: 50%; background: var(--hole);
     box-shadow: inset 0 3px 6px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.15);
-    width: 100%; height: 100%;
-    -webkit-tap-highlight-color: transparent;
+    width: 100%; height: 100%; -webkit-tap-highlight-color: transparent;
   }
   .hole:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   .marble {
-    position: absolute; inset: 6%;
-    border-radius: 50%;
+    position: absolute; inset: 6%; border-radius: 50%;
     background: radial-gradient(circle at 32% 28%, #ffffff 0 9%, #9ED8FF 20%, #2477C4 55%, #0A3463 100%);
     box-shadow: 0 3px 4px rgba(0,0,0,0.45);
     transform: scale(0); transition: transform 180ms cubic-bezier(.3,1.6,.6,1);
   }
   .hole.full .marble { transform: scale(1); }
-  .hole.selected .marble {
-    transform: scale(1.08) translateY(-3px);
-    box-shadow: 0 0 0 3px var(--gold), 0 8px 10px rgba(0,0,0,0.45);
-  }
+  .hole.selected .marble { transform: scale(1.08) translateY(-3px); box-shadow: 0 0 0 3px var(--gold), 0 8px 10px rgba(0,0,0,0.45); }
   .hole.target::after {
-    content: ""; position: absolute; inset: 34%;
-    border-radius: 50%; background: var(--gold);
+    content: ""; position: absolute; inset: 34%; border-radius: 50%; background: var(--gold);
     animation: pulse 1s ease-in-out infinite alternate;
   }
+  /* The hinted landing hole gets a ring on top of the normal glow, so it stands out from other legal targets. */
+  .hole.hint { box-shadow: inset 0 3px 6px rgba(0,0,0,0.6), 0 0 0 4px var(--gold); }
   @keyframes pulse { from { opacity: .45; transform: scale(.8); } to { opacity: 1; transform: scale(1.1); } }
 
-  .bar { display: flex; align-items: center; justify-content: space-between; width: min(92vw, 460px); gap: 12px; flex-wrap: wrap; }
-  .count { font-size: 1.15rem; font-weight: 600; }
-  .count b { font-size: 1.6rem; font-weight: 800; }
-  .actions { display: flex; gap: 8px; }
+  .stats { width: min(92vw, 460px); display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; text-align: center; }
+  .stat { display: flex; flex-direction: column; line-height: 1.1; }
+  .stat b { font-size: 1.5rem; font-weight: 800; }
+  .stat span { font-size: .85rem; color: var(--muted); }
+
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
   button.act {
     font: inherit; font-weight: 600; font-size: 1rem;
-    border: 2px solid var(--btn); border-radius: 999px;
-    padding: 6px 16px; cursor: pointer;
+    border: 2px solid var(--btn); border-radius: 999px; padding: 6px 16px; cursor: pointer;
     background: transparent; color: var(--ink);
   }
   button.act.primary { background: var(--btn); color: var(--btn-ink); }
   button.act:disabled { opacity: .4; cursor: default; }
-  button.act:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
-  .msg { min-height: 1.6em; margin: 0; font-size: 1.1rem; font-weight: 600; text-align: center; }
-  .best { margin: 0; color: var(--muted); font-size: .95rem; }
+  button.act:focus-visible, .linkish:focus-visible, .chip:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .msg { min-height: 1.6em; margin: 0; font-size: 1.1rem; font-weight: 600; text-align: center; max-width: 36ch; }
+  .small { margin: 0; color: var(--muted); font-size: .9rem; text-align: center; }
+
+  .board-section { width: 100%; margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .lb-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .lb-head label { color: var(--muted); font-size: .95rem; display: flex; gap: 6px; align-items: center; cursor: pointer; }
+  .table-wrap { overflow-x: auto; border-radius: 14px; background: var(--panel); }
+  table { width: 100%; border-collapse: collapse; font-size: .98rem; }
+  th, td { padding: 7px 10px; text-align: right; white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; font-size: .85rem; border-bottom: 2px solid var(--line); }
+  th:nth-child(2), td:nth-child(2) { text-align: left; }
+  td { border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: 0; }
+  td.rank { font-weight: 800; color: var(--muted); }
+  td.score { font-weight: 800; }
+  tr.mine td { background: color-mix(in srgb, var(--gold) 28%, transparent); }
+  .empty { padding: 16px; text-align: center; color: var(--muted); }
+
+  dialog {
+    border: 0; border-radius: 22px; padding: 22px 20px; width: min(92vw, 400px);
+    background: var(--bg); color: var(--ink); box-shadow: 0 20px 50px rgba(0,0,0,.35);
+  }
+  dialog::backdrop { background: rgba(10, 18, 30, .55); }
+  dialog form, .dlg { display: flex; flex-direction: column; gap: 12px; }
+  .field { font: inherit; font-size: 1.2rem; padding: 8px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); width: 100%; }
+  .field:focus { outline: 3px solid var(--gold); outline-offset: 1px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font: inherit; font-size: .95rem; border-radius: 999px; padding: 2px 12px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+  .breakdown { width: 100%; border-collapse: collapse; }
+  .breakdown td { padding: 4px 2px; border: 0; }
+  .breakdown td:first-child { text-align: left; color: var(--muted); }
+  .breakdown td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  .breakdown tr.total td { border-top: 2px solid var(--line); font-weight: 800; font-size: 1.2rem; color: var(--ink); padding-top: 8px; }
+  .row-end { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
 
   @media (prefers-reduced-motion: reduce) {
     .marble { transition: none; }
@@ -120,104 +142,371 @@
 <main>
   <h1>Brainvita</h1>
   <p class="rule">Jump a marble over its neighbour into an empty hole. The jumped marble comes off. End with one marble in the centre.</p>
+  <p class="player">Playing as <b id="playerName">…</b> <button class="linkish" id="changePlayer" type="button">change</button></p>
 
   <div class="board" id="board" role="grid" aria-label="Brainvita board"></div>
 
-  <div class="bar">
-    <div class="count">Marbles left <b id="count">32</b></div>
-    <div class="actions">
-      <button class="act" id="undo" type="button">Undo</button>
-      <button class="act primary" id="restart" type="button">New game</button>
-    </div>
+  <div class="stats" aria-live="polite">
+    <div class="stat"><b id="count">32</b><span>marbles</span></div>
+    <div class="stat"><b id="moves">0</b><span>moves</span></div>
+    <div class="stat"><b id="undos">0</b><span>undos</span></div>
+    <div class="stat"><b id="hints">0</b><span>hints</span></div>
+    <div class="stat"><b id="time">0:00</b><span>time</span></div>
+  </div>
+  <div class="actions">
+    <button class="act" id="undo" type="button">Undo</button>
+    <button class="act" id="hint" type="button">Hint</button>
+    <button class="act primary" id="restart" type="button">New game</button>
   </div>
   <p class="msg" id="msg" aria-live="polite"></p>
-  <p class="best" id="best"></p>
+  <p class="small" id="book"></p>
+
+  <section class="board-section" aria-labelledby="lbTitle">
+    <div class="lb-head">
+      <h2 id="lbTitle">Family leaderboard</h2>
+      <label><input type="checkbox" id="bestOnly" checked> Best per person</label>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Score</th><th>Left</th><th>Moves</th><th>Undos</th><th>Hints</th><th>Time</th></tr></thead>
+        <tbody id="lbBody"><tr><td colspan="8" class="empty">Loading scores…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="small" id="lbNote"></p>
+  </section>
 </main>
 
+<dialog id="nameDlg">
+  <form method="dialog" id="nameForm">
+    <h2>Who's playing?</h2>
+    <input class="field" id="nameInput" maxlength="20" autocomplete="off" placeholder="Your name" required>
+    <div class="chips" id="nameChips"></div>
+    <div class="row-end"><button class="act primary" type="submit">Start game</button></div>
+  </form>
+</dialog>
+
+<dialog id="endDlg">
+  <div class="dlg">
+    <h2 id="endTitle">Game over</h2>
+    <p class="msg" id="endMsg" style="text-align:left"></p>
+    <table class="breakdown"><tbody id="endBreakdown"></tbody></table>
+    <div class="row-end">
+      <button class="act" id="endUndo" type="button">Undo instead</button>
+      <button class="act primary" id="endSave" type="button">Save score</button>
+    </div>
+  </div>
+</dialog>
+
 <script>
+/* =====================================================================
+   Leaderboard storage.
+   Leave these empty and scores are kept on this device only (localStorage).
+   Fill them in with a Firebase project and every phone in the family
+   shares one leaderboard. Setup steps are in the README.
+   ===================================================================== */
+const LEADERBOARD = {
+  firebaseProjectId: '',
+  firebaseApiKey: '',
+  collection: 'brainvita_scores'
+};
+
 (function () {
+  /* ---------- Board geometry ---------- */
   const N = 7, C = 3;
   const DIRS = [[0, 1], [0, -1], [1, 0], [-1, 0]];
   const isHole = (r, c) => r >= 0 && r < N && c >= 0 && c < N && ((r >= 2 && r <= 4) || (c >= 2 && c <= 4));
+  // Number the 33 holes 0..32 so a move can be written as "from>to" and a board as a 33-cell array.
+  const IDX = [], POS = [];
+  for (let r = 0; r < N; r++) { IDX[r] = []; for (let c = 0; c < N; c++) if (isHole(r, c)) { IDX[r][c] = POS.length; POS.push([r, c]); } }
 
-  const boardEl = document.getElementById('board');
-  const countEl = document.getElementById('count');
-  const msgEl = document.getElementById('msg');
-  const bestEl = document.getElementById('best');
-  const undoBtn = document.getElementById('undo');
-
-  let board, history, sel, over;
-  const holes = [];
-
-  // Build the grid once; render() only toggles classes.
-  for (let r = 0; r < N; r++) {
-    holes[r] = [];
-    for (let c = 0; c < N; c++) {
-      if (!isHole(r, c)) {
-        const blank = document.createElement('span');
-        blank.className = 'cell';
-        boardEl.appendChild(blank);
-        continue;
+  /* ---------- Trie of winning move sequences (the "hint book") ----------
+     Every path from the root is a move sequence from the opening position
+     that is known to end with one marble in the centre. Walking the trie with
+     the player's own moves answers "is this game still on a known winning
+     line, and what comes next?" in O(moves played), with no search. */
+  class Trie {
+    constructor() { this.root = { kids: new Map(), lines: 0 }; this.size = 0; }
+    insert(seq) {
+      let node = this.root;
+      // Skip duplicates so `lines` counts distinct winning lines.
+      if (this.has(seq)) return false;
+      node.lines++;
+      for (const m of seq) {
+        if (!node.kids.has(m)) node.kids.set(m, { kids: new Map(), lines: 0 });
+        node = node.kids.get(m);
+        node.lines++;
       }
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'hole';
-      b.innerHTML = '<span class="marble"></span>';
-      b.addEventListener('click', () => onTap(r, c));
-      boardEl.appendChild(b);
-      holes[r][c] = b;
+      node.end = true; this.size++;
+      return true;
+    }
+    has(seq) { const w = this.walk(seq); return w.depth === seq.length && !!w.node.end; }
+    // Follow seq as far as the trie goes. depth = how many moves matched.
+    walk(seq) {
+      let node = this.root, depth = 0;
+      for (const m of seq) { const next = node.kids.get(m); if (!next) break; node = next; depth++; }
+      return { node, depth };
+    }
+    // Next move along the most-travelled known winning line, or null.
+    suggest(seq) {
+      const { node, depth } = this.walk(seq);
+      if (depth !== seq.length || node.kids.size === 0) return null;
+      let best = null, bestLines = -1;
+      for (const [m, child] of node.kids) if (child.lines > bestLines) { best = m; bestLines = child.lines; }
+      return best;
     }
   }
 
+  const LINES_KEY = 'brainvita-lines';
+  const book = new Trie();
+  const savedLines = (() => { try { return JSON.parse(localStorage.getItem(LINES_KEY) || '[]'); } catch (e) { return []; } })();
+  for (const l of savedLines) book.insert(l.split(' '));
+  function learnLine(seq) {
+    if (!book.insert(seq)) return;
+    savedLines.push(seq.join(' '));
+    while (savedLines.length > 300) savedLines.shift();
+    try { localStorage.setItem(LINES_KEY, JSON.stringify(savedLines)); } catch (e) {}
+    renderBook();
+  }
+
+  /* ---------- Solver, run in a Web Worker so the board never freezes ----------
+     Depth-first search over board states with three speed-ups:
+       1. Dead-state memo: a board that failed once is never searched again.
+          Keyed by board state (not move order), because many move orders
+          reach the same board.
+       2. Symmetry: the 8 rotations/reflections of a board are equivalent
+          (the goal, the centre, is symmetric), so they share one memo entry.
+       3. Pagoda functions: weights where no jump can increase the weighted sum
+          of marbles. If the sum is already below the goal's, the board is
+          provably lost and the search stops there immediately. */
+  function workerMain() {
+    const N = 7, C = 3;
+    const isHole = (r, c) => r >= 0 && r < N && c >= 0 && c < N && ((r >= 2 && r <= 4) || (c >= 2 && c <= 4));
+    const IDX = [], POS = [];
+    for (let r = 0; r < N; r++) { IDX[r] = []; for (let c = 0; c < N; c++) if (isHole(r, c)) { IDX[r][c] = POS.length; POS.push([r, c]); } }
+    const CENTER = IDX[C][C];
+    const dist = i => Math.abs(POS[i][0] - C) + Math.abs(POS[i][1] - C);
+    const JUMPS = [];
+    for (const [r, c] of POS) for (const [dr, dc] of [[0, 1], [0, -1], [1, 0], [-1, 0]])
+      if (isHole(r + 2 * dr, c + 2 * dc)) JUMPS.push([IDX[r][c], IDX[r + dr][c + dc], IDX[r + 2 * dr][c + 2 * dc]]);
+    // Try moving outer marbles first: stragglers on the arms are what usually ruin a game.
+    JUMPS.sort((a, b) => dist(b[0]) - dist(a[0]));
+    const TF = [(r, c) => [r, c], (r, c) => [c, 6 - r], (r, c) => [6 - r, 6 - c], (r, c) => [6 - c, r],
+                (r, c) => [r, 6 - c], (r, c) => [6 - r, c], (r, c) => [c, r], (r, c) => [6 - c, 6 - r]];
+    const SYMS = TF.map(f => POS.map(([r, c]) => { const [a, b] = f(r, c); return IDX[a][b]; }));
+    const POW = []; for (let i = 0; i < 33; i++) POW.push(2 ** i); // 33 bits fits exactly in a JS number
+    const BASE = [[0,2,0,0,0,0,-1,2,0,2,0,2,-1,2,2,0,2,0,2,2,0,0,0,0,0,0,0,0,2,0,0,2,0],[0,2,0,0,2,0,-1,1,0,1,0,1,-1,2,2,0,2,0,2,2,-1,1,0,1,0,1,-1,0,2,0,0,2,0],[0,2,0,0,2,0,0,0,0,0,0,0,0,2,2,0,2,0,2,2,0,0,0,0,0,0,0,0,2,0,0,2,0],[-1,0,-1,1,2,1,0,0,0,0,0,0,0,0,1,1,2,1,1,0,0,0,0,0,0,0,0,1,2,1,-1,0,-1],[0,2,0,0,2,0,0,0,0,0,0,0,0,2,2,0,2,0,2,0,0,0,0,0,0,0,0,0,2,0,0,2,0],[2,2,2,0,0,0,2,2,2,2,2,2,2,2,0,2,2,2,0,2,2,2,2,2,2,2,2,2,0,2,2,2,0],[0,2,0,0,2,0,0,0,0,0,0,0,0,2,2,0,2,0,2,2,-1,1,0,1,0,1,-1,0,2,0,0,2,0],[0,2,0,0,2,0,0,0,0,0,0,0,0,0,2,0,2,0,2,2,0,0,0,0,0,0,0,0,2,0,0,2,0],[-1,0,-1,1,1,1,-1,1,0,1,0,1,-1,0,1,1,2,1,1,0,-1,1,0,1,0,1,-1,1,1,1,-1,0,-1],[0,2,0,0,2,0,0,0,0,0,0,0,0,2,2,0,2,0,2,2,0,0,0,0,0,0,0,0,2,0,0,0,0],[0,0,0,0,1,0,-1,1,0,1,0,1,-1,0,2,0,2,0,2,0,-1,1,0,1,0,1,-1,0,1,0,0,0,0],[0,2,0,0,2,0,0,0,0,0,0,0,0,2,2,0,2,0,2,2,-1,2,0,2,0,2,-1,0,0,0,0,2,0],[0,0,0,0,2,0,0,0,0,0,0,0,0,2,2,0,2,0,2,2,0,0,0,0,0,0,0,0,2,0,0,2,0],[-1,2,0,1,2,0,0,0,0,0,0,0,0,2,2,1,2,0,2,2,-1,1,0,1,0,1,-1,1,2,0,-1,2,0],[0,2,-1,0,2,1,0,0,0,0,0,0,0,2,2,0,2,1,2,2,-1,1,0,1,0,1,-1,0,2,1,0,2,-1],[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,0,2,2,2,2,2,2,2,2,2,2,2,2,2,0]];
+    const seen = new Set(), PAG = [];
+    for (const p of BASE) for (const s of SYMS) {
+      const q = new Array(33); for (let i = 0; i < 33; i++) q[s[i]] = p[i];
+      const k = q.join(',');
+      if (seen.has(k)) continue; seen.add(k);
+      if (JUMPS.every(([a, b, c]) => q[a] + q[b] >= q[c])) PAG.push(q); // keep only valid pagodas
+    }
+    function canon(cells) {
+      let best = Infinity;
+      for (const s of SYMS) { let k = 0; for (let i = 0; i < 33; i++) if (cells[i]) k += POW[s[i]]; if (k < best) best = k; }
+      return best;
+    }
+    function solve(start, budget) {
+      const cells = start.slice();
+      let count = cells.reduce((a, b) => a + b, 0), nodes = 0, out = false;
+      const sums = PAG.map(p => p.reduce((s, v, i) => s + (cells[i] ? v : 0), 0));
+      const dead = new Set(), path = [];
+      function dfs() {
+        if (count === 1) return cells[CENTER] === 1;
+        if (++nodes > budget) { out = true; return false; }
+        for (let k = 0; k < PAG.length; k++) if (sums[k] < PAG[k][CENTER]) return false;
+        const key = canon(cells);
+        if (dead.has(key)) return false;
+        for (const [a, b, c] of JUMPS) {
+          if (!cells[a] || !cells[b] || cells[c]) continue;
+          cells[a] = 0; cells[b] = 0; cells[c] = 1; count--; path.push(a + '>' + c);
+          for (let k = 0; k < PAG.length; k++) { const p = PAG[k]; sums[k] += p[c] - p[a] - p[b]; }
+          if (dfs()) return true;
+          for (let k = 0; k < PAG.length; k++) { const p = PAG[k]; sums[k] -= p[c] - p[a] - p[b]; }
+          path.pop(); cells[a] = 1; cells[b] = 1; cells[c] = 0; count++;
+          if (out) return false;
+        }
+        dead.add(key);
+        return false;
+      }
+      const ok = dfs();
+      return { ok, path: ok ? path : null, proven: !ok && !out, nodes };
+    }
+    self.onmessage = e => { const { id, cells, budget } = e.data; self.postMessage(Object.assign({ id }, solve(cells, budget))); };
+  }
+
+  let worker = null, workerBusy = false, reqSeq = 0, pending = new Map();
+  function spawnWorker() {
+    const src = '(' + workerMain.toString() + ')()';
+    worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+    worker.onmessage = e => { workerBusy = false; const cb = pending.get(e.data.id); pending.delete(e.data.id); if (cb) cb(e.data); };
+  }
+  function solveAsync(cells, budget) {
+    // A long search for an old position is useless once the board changes, so restart the worker.
+    if (workerBusy) { worker.terminate(); pending.clear(); spawnWorker(); }
+    const id = ++reqSeq; workerBusy = true;
+    return new Promise(res => { pending.set(id, res); worker.postMessage({ id, cells, budget }); });
+  }
+  spawnWorker();
+
+  /* ---------- Leaderboard storage ---------- */
+  const useRemote = !!(LEADERBOARD.firebaseProjectId && LEADERBOARD.firebaseApiKey);
+  const FS = 'https://firestore.googleapis.com/v1/projects/' + LEADERBOARD.firebaseProjectId + '/databases/(default)/documents';
+  const SCORES_KEY = 'brainvita-scores', QUEUE_KEY = 'brainvita-unsent';
+  const toFs = o => { const f = {}; for (const [k, v] of Object.entries(o))
+    f[k] = typeof v === 'string' ? { stringValue: v } : typeof v === 'boolean' ? { booleanValue: v } : { integerValue: String(v) };
+    return { fields: f }; };
+  const fromFs = d => { const o = {}; for (const [k, v] of Object.entries(d.fields || {}))
+    o[k] = 'stringValue' in v ? v.stringValue : 'booleanValue' in v ? v.booleanValue : Number(v.integerValue ?? v.doubleValue ?? 0);
+    return o; };
+  const readLocal = k => { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) { return []; } };
+  const writeLocal = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+  const store = useRemote ? {
+    async list() {
+      const r = await fetch(FS + ':runQuery?key=' + LEADERBOARD.firebaseApiKey, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ structuredQuery: { from: [{ collectionId: LEADERBOARD.collection }],
+          orderBy: [{ field: { fieldPath: 'score' }, direction: 'DESCENDING' }], limit: 200 } })
+      });
+      if (!r.ok) throw new Error('read ' + r.status);
+      return (await r.json()).filter(x => x.document).map(x => fromFs(x.document));
+    },
+    async add(entry) {
+      const r = await fetch(FS + '/' + LEADERBOARD.collection + '?key=' + LEADERBOARD.firebaseApiKey, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(toFs(entry))
+      });
+      if (!r.ok) throw new Error('write ' + r.status);
+    }
+  } : {
+    async list() { return readLocal(SCORES_KEY); },
+    async add(entry) { const all = readLocal(SCORES_KEY); all.push(entry); writeLocal(SCORES_KEY, all); }
+  };
+
+  // Scores that failed to upload (no signal, say) wait here and retry on next load.
+  async function flushQueue() {
+    const q = readLocal(QUEUE_KEY); if (!q.length) return;
+    const left = [];
+    for (const e of q) { try { await store.add(e); } catch (err) { left.push(e); } }
+    writeLocal(QUEUE_KEY, left);
+  }
+
+  /* ---------- Scoring ----------
+     Each jump removes exactly one marble, so "jumps" always equals 32 minus
+     marbles left and can't be a separate score. "Moves" counts a chain of
+     jumps by the same marble as one move (the record is 18), so it rewards
+     planning rather than just finishing. */
+  function scoreOf(s) {
+    const parts = [
+      ['Marbles cleared (' + (32 - s.left) + ' × 100)', (32 - s.left) * 100],
+      [s.left === 1 && s.centre ? 'Last marble in the centre' : 'One marble left', s.left === 1 ? (s.centre ? 1000 : 300) : 0],
+      ['Chain jumps (' + (s.jumps - s.moves) + ' × 40)', (s.jumps - s.moves) * 40],
+      ['Speed bonus', Math.max(0, Math.round((600 - s.seconds) / 2))],
+      ['Undos (' + s.undos + ' × −30)', -30 * s.undos],
+      ['Hints (' + s.hints + ' × −150)', -150 * s.hints]
+    ].filter(([, v]) => v !== 0);
+    const total = Math.max(0, parts.reduce((a, [, v]) => a + v, 0));
+    return { parts, total };
+  }
+
+  /* ---------- DOM ---------- */
+  const $ = id => document.getElementById(id);
+  const boardEl = $('board'), msgEl = $('msg'), undoBtn = $('undo'), hintBtn = $('hint');
+  const holes = [];
+  for (let r = 0; r < N; r++) {
+    holes[r] = [];
+    for (let c = 0; c < N; c++) {
+      if (!isHole(r, c)) { const s = document.createElement('span'); s.className = 'cell'; boardEl.appendChild(s); continue; }
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'hole'; b.innerHTML = '<span class="marble"></span>';
+      b.addEventListener('click', () => onTap(r, c));
+      boardEl.appendChild(b); holes[r][c] = b;
+    }
+  }
+
+  /* ---------- Game state ---------- */
+  let board, history, path, sel, over, hintTo;
+  let player = '', moves, jumps, lastTo, undos, hints, startedAt, endedAt, submitted, tick;
+
+  const cellsOf = () => POS.map(([r, c]) => board[r][c] === 1 ? 1 : 0);
+  const marblesLeft = () => cellsOf().reduce((a, b) => a + b, 0);
+  const elapsed = () => startedAt ? Math.floor(((endedAt || Date.now()) - startedAt) / 1000) : 0;
+  const fmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+
   function jumpsFrom(r, c) {
-    return DIRS
-      .map(([dr, dc]) => ({ tr: r + 2 * dr, tc: c + 2 * dc, mr: r + dr, mc: c + dc }))
+    return DIRS.map(([dr, dc]) => ({ tr: r + 2 * dr, tc: c + 2 * dc, mr: r + dr, mc: c + dc }))
       .filter(m => isHole(m.tr, m.tc) && board[m.tr][m.tc] === 0 && board[m.mr][m.mc] === 1);
   }
-
   function anyJumps() {
-    for (let r = 0; r < N; r++)
-      for (let c = 0; c < N; c++)
-        if (isHole(r, c) && board[r][c] === 1 && jumpsFrom(r, c).length) return true;
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++)
+      if (isHole(r, c) && board[r][c] === 1 && jumpsFrom(r, c).length) return true;
     return false;
-  }
-
-  function marblesLeft() {
-    let n = 0;
-    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (board[r][c] === 1) n++;
-    return n;
   }
 
   function newGame() {
     board = Array.from({ length: N }, (_, r) => Array.from({ length: N }, (_, c) => isHole(r, c) ? 1 : -1));
     board[C][C] = 0;
-    history = []; sel = null; over = false;
+    history = []; path = []; sel = null; over = false; hintTo = null;
+    moves = 0; jumps = 0; lastTo = null; undos = 0; hints = 0;
+    startedAt = null; endedAt = null; submitted = false;
     msgEl.textContent = 'Tap a marble to pick it up.';
     render();
   }
 
   function onTap(r, c) {
     if (over) return;
+    hintTo = null;
     if (board[r][c] === 1) {
       if (sel && sel.r === r && sel.c === c) { sel = null; msgEl.textContent = ''; }
       else if (jumpsFrom(r, c).length) { sel = { r, c }; msgEl.textContent = 'Now tap a glowing hole.'; }
-      else { sel = null; msgEl.textContent = "That marble has no jump right now."; }
-      render();
-      return;
+      else { sel = null; msgEl.textContent = 'That marble has no jump right now.'; }
+      render(); return;
     }
     if (board[r][c] === 0 && sel) {
       const m = jumpsFrom(sel.r, sel.c).find(j => j.tr === r && j.tc === c);
-      if (!m) { msgEl.textContent = 'Pick a glowing hole, or tap another marble.'; return; }
-      history.push(board.map(row => row.slice()));
-      board[sel.r][sel.c] = 0;
-      board[m.mr][m.mc] = 0;
-      board[r][c] = 1;
-      // Keep the moved marble selected if it can chain another jump.
-      sel = jumpsFrom(r, c).length ? { r, c } : null;
-      msgEl.textContent = '';
-      checkEnd();
-      render();
+      if (!m) { msgEl.textContent = 'Pick a glowing hole, or tap another marble.'; render(); return; }
+      doJump(sel.r, sel.c, m);
     }
+  }
+
+  function doJump(fr, fc, m) {
+    const from = IDX[fr][fc], to = IDX[m.tr][m.tc];
+    if (!startedAt) startedAt = Date.now();
+    history.push({ board: board.map(row => row.slice()), moves, jumps, lastTo });
+    // Same marble jumping again straight away continues the same move.
+    if (lastTo !== from) moves++;
+    jumps++; lastTo = to;
+    path.push(from + '>' + to);
+    board[fr][fc] = 0; board[m.mr][m.mc] = 0; board[m.tr][m.tc] = 1;
+    reqSeq++; // any hint search in flight is now about an old board
+    sel = jumpsFrom(m.tr, m.tc).length ? { r: m.tr, c: m.tc } : null;
+    msgEl.textContent = '';
+    render();
+    checkEnd();
+  }
+
+  function undo() {
+    if (!history.length) return;
+    const h = history.pop();
+    board = h.board; moves = h.moves; jumps = h.jumps; lastTo = h.lastTo;
+    path.pop(); undos++; reqSeq++;
+    sel = null; over = false; endedAt = null; hintTo = null;
+    msgEl.textContent = 'Move undone.';
+    render();
+  }
+
+  function checkEnd() {
+    if (anyJumps()) return;
+    over = true; sel = null; endedAt = Date.now();
+    const left = marblesLeft(), centre = board[C][C] === 1;
+    if (left === 1 && centre) learnLine(path.slice()); // a real family win joins the hint book
+    render();
+    showEnd(left, centre);
+  }
+
+  function stats() {
+    return { left: marblesLeft(), centre: board[C][C] === 1, moves, jumps, undos, hints, seconds: elapsed() };
   }
 
   function verdict(n, centre) {
@@ -225,27 +514,90 @@
     if (n === 1) return 'One marble left. Now try to finish in the centre.';
     if (n === 2) return 'Two left. Excellent, almost there.';
     if (n === 3) return 'Three left. Very good.';
-    if (n <= 5) return n + ' left. Good game, try again?';
-    return n + ' marbles left and no jumps. Undo or start again.';
+    if (n <= 5) return n + ' left. Good game.';
+    return n + ' marbles left and no jumps.';
   }
 
-  function checkEnd() {
-    if (anyJumps()) return;
-    over = true; sel = null;
-    const n = marblesLeft();
-    msgEl.textContent = verdict(n, board[C][C] === 1);
-    saveBest(n);
+  function showEnd(left, centre) {
+    const s = stats(), sc = scoreOf(s);
+    $('endTitle').textContent = sc.total + ' points';
+    $('endMsg').textContent = verdict(left, centre);
+    const body = $('endBreakdown'); body.textContent = '';
+    for (const [label, v] of sc.parts) {
+      const tr = body.insertRow(); tr.insertCell().textContent = label; tr.insertCell().textContent = (v > 0 ? '+' : '\u2212') + Math.abs(v);
+    }
+    const tot = body.insertRow(); tot.className = 'total';
+    tot.insertCell().textContent = 'Total'; tot.insertCell().textContent = sc.total;
+    $('endUndo').hidden = left === 1 && centre; // nothing to improve on a perfect finish
+    $('endSave').disabled = false; $('endSave').textContent = 'Save score';
+    $('endDlg').showModal();
   }
 
-  function getBest() {
-    try { const v = parseInt(localStorage.getItem('brainvita-best'), 10); return isNaN(v) ? null : v; }
-    catch (e) { return null; }
-  }
-  function saveBest(n) {
-    const b = getBest();
-    if (b === null || n < b) { try { localStorage.setItem('brainvita-best', String(n)); } catch (e) {} }
+  async function saveScore() {
+    if (submitted) return;
+    submitted = true;
+    const s = stats();
+    const entry = Object.assign({ name: player, score: scoreOf(s).total, at: new Date().toISOString() }, s);
+    $('endSave').disabled = true; $('endSave').textContent = 'Saving…';
+    try { await store.add(entry); msgEl.textContent = 'Score saved. Tap New game to play again.'; }
+    catch (e) {
+      const q = readLocal(QUEUE_KEY); q.push(entry); writeLocal(QUEUE_KEY, q);
+      msgEl.textContent = "Couldn't reach the leaderboard. Your score will upload next time the page opens.";
+    }
+    $('endDlg').close();
+    lastSaved = entry.at;
+    loadBoard();
   }
 
+  /* ---------- Hints ---------- */
+  async function hint() {
+    if (over) return;
+    const seq = path.slice();
+    const fromBook = book.suggest(seq);
+    if (fromBook) return showHint(fromBook, 'This move is on a known winning line.');
+
+    msgEl.textContent = 'Thinking…'; hintBtn.disabled = true;
+    const asked = reqSeq + 1; // solveAsync bumps reqSeq to this
+    const res = await solveAsync(cellsOf(), 3000000);
+    hintBtn.disabled = over;
+    if (asked !== reqSeq) return; // board changed while we were thinking
+    if (res.ok) {
+      learnLine(seq.concat(res.path));
+      return showHint(res.path[0], 'Found a way to finish from here.');
+    }
+    // No line from here. Step back through this game's own history to find the
+    // latest position that can still be won. The trie gives an instant upper
+    // bound (the last point that was on a known line); short searches on the
+    // positions after that point can usually find a closer one.
+    msgEl.textContent = (res.proven ? "There's no way to finish in the centre from here." : "Couldn't find a winning line from here quickly.") + ' Looking back…';
+    hintBtn.disabled = true;
+    const known = book.walk(seq).depth;
+    let back = seq.length - known;
+    const deadline = Date.now() + 6000;
+    for (let k = 1; k < seq.length - known && Date.now() < deadline; k++) {
+      const at = seq.length - k;
+      const cells = POS.map(([r, c]) => history[at].board[r][c] === 1 ? 1 : 0);
+      const r = await solveAsync(cells, 400000);
+      if (asked + k !== reqSeq) return; // player moved meanwhile
+      if (r.ok) { learnLine(seq.slice(0, at).concat(r.path)); back = k; break; }
+    }
+    hintBtn.disabled = over;
+    msgEl.textContent = (res.proven
+      ? "There's no way to finish in the centre from here."
+      : "Couldn't find a winning line from here quickly.") +
+      ' Undo ' + back + (back === 1 ? ' move' : ' moves') + ' to get back on a winning line.';
+  }
+
+  function showHint(move, why) {
+    const [a, c] = move.split('>').map(Number);
+    hints++;
+    sel = { r: POS[a][0], c: POS[a][1] };
+    hintTo = c;
+    msgEl.textContent = why + ' Jump the lifted marble to the ringed hole.';
+    render();
+  }
+
+  /* ---------- Rendering ---------- */
   function render() {
     const targets = sel ? jumpsFrom(sel.r, sel.c) : [];
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
@@ -256,25 +608,102 @@
       h.classList.toggle('full', full);
       h.classList.toggle('selected', isSel);
       h.classList.toggle('target', isTarget);
-      h.setAttribute('aria-label',
-        'Row ' + (r + 1) + ', column ' + (c + 1) + ': ' +
+      h.classList.toggle('hint', hintTo === IDX[r][c]);
+      h.setAttribute('aria-label', 'Row ' + (r + 1) + ', column ' + (c + 1) + ': ' +
         (full ? (isSel ? 'marble, picked up' : 'marble') : (isTarget ? 'empty, you can jump here' : 'empty')));
     }
-    countEl.textContent = marblesLeft();
-    undoBtn.disabled = history.length === 0;
-    const b = getBest();
-    bestEl.textContent = b === null ? '' : 'Your best: ' + b + (b === 1 ? ' marble' : ' marbles') + ' left';
+    $('count').textContent = marblesLeft();
+    $('moves').textContent = moves;
+    $('undos').textContent = undos;
+    $('hints').textContent = hints;
+    $('time').textContent = fmt(elapsed());
+    undoBtn.disabled = history.length === 0 || submitted;
+    hintBtn.disabled = over;
   }
+  function renderBook() {
+    $('book').textContent = book.size ? 'Hint book knows ' + book.size + (book.size === 1 ? ' winning line.' : ' winning lines.') : '';
+  }
+  setInterval(() => { if (startedAt && !endedAt) $('time').textContent = fmt(elapsed()); }, 1000);
 
-  undoBtn.addEventListener('click', () => {
-    if (!history.length) return;
-    board = history.pop(); sel = null; over = false;
-    msgEl.textContent = 'Move undone.';
-    render();
+  /* ---------- Leaderboard view ---------- */
+  let allScores = [], lastSaved = null;
+  async function loadBoard() {
+    try { allScores = await store.list(); }
+    catch (e) { $('lbBody').innerHTML = '<tr><td colspan="8" class="empty">Couldn\u2019t load the leaderboard. Check the connection and reload.</td></tr>'; return; }
+    renderBoard(); renderChips();
+  }
+  function renderBoard() {
+    let rows = allScores.slice().sort((a, b) => b.score - a.score || a.seconds - b.seconds);
+    if ($('bestOnly').checked) {
+      const seen = new Set();
+      rows = rows.filter(r => { const k = r.name.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; });
+    }
+    rows = rows.slice(0, 25);
+    const body = $('lbBody'); body.textContent = '';
+    if (!rows.length) { body.innerHTML = '<tr><td colspan="8" class="empty">No scores yet. Finish a game to get on the board.</td></tr>'; return; }
+    rows.forEach((s, i) => {
+      const tr = body.insertRow();
+      if (s.at === lastSaved) tr.className = 'mine';
+      const cells = [i + 1, s.name, s.score, s.left + (s.left === 1 && s.centre ? ' ★' : ''), s.moves, s.undos, s.hints, fmt(s.seconds || 0)];
+      cells.forEach((v, j) => { const td = tr.insertCell(); td.textContent = v; if (j === 0) td.className = 'rank'; if (j === 2) td.className = 'score'; });
+    });
+  }
+  $('bestOnly').addEventListener('change', renderBoard);
+  $('lbNote').textContent = useRemote ? '★ means the last marble finished in the centre.'
+    : '★ means the last marble finished in the centre. Scores are saved on this device only.';
+
+  /* ---------- Player name ---------- */
+  const NAME_KEY = 'brainvita-player';
+  function renderChips() {
+    const box = $('nameChips'); box.textContent = '';
+    const names = [...new Map(allScores.map(s => [s.name.toLowerCase(), s.name])).values()].slice(0, 10);
+    for (const n of names) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = n;
+      b.addEventListener('click', () => { $('nameInput').value = n; $('nameForm').requestSubmit(); });
+      box.appendChild(b);
+    }
+  }
+  function askName() {
+    try { $('nameInput').value = localStorage.getItem(NAME_KEY) || ''; } catch (e) {}
+    renderChips();
+    $('nameDlg').showModal();
+    $('nameInput').select();
+  }
+  $('nameForm').addEventListener('submit', () => {
+    player = $('nameInput').value.trim().slice(0, 20) || 'Player';
+    try { localStorage.setItem(NAME_KEY, player); } catch (e) {}
+    $('playerName').textContent = player;
+    newGame();
   });
-  document.getElementById('restart').addEventListener('click', newGame);
+  // The name dialog can't be dismissed with Esc: every game needs a player.
+  $('nameDlg').addEventListener('cancel', e => e.preventDefault());
+  $('endDlg').addEventListener('cancel', e => e.preventDefault());
 
-  newGame();
+  /* ---------- Buttons ---------- */
+  undoBtn.addEventListener('click', undo);
+  hintBtn.addEventListener('click', hint);
+  $('restart').addEventListener('click', () => {
+    if (path && path.length && !submitted && !confirm('Start over? This game won\u2019t be scored.')) return;
+    askName();
+  });
+  $('changePlayer').addEventListener('click', () => {
+    if (path && path.length && !submitted && !confirm('Switch player? This game won\u2019t be scored.')) return;
+    askName();
+  });
+  $('endSave').addEventListener('click', saveScore);
+  $('endUndo').addEventListener('click', () => { $('endDlg').close(); undo(); });
+
+  /* ---------- Start ---------- */
+  renderBook();
+  // Seed the hint book with one solved line from the opening (takes a few milliseconds).
+  if (book.size === 0) {
+    const start = POS.map(([r, c]) => (r === C && c === C) ? 0 : 1);
+    solveAsync(start, 2000000).then(res => { if (res.ok) learnLine(res.path); });
+  }
+  board = Array.from({ length: N }, (_, r) => Array.from({ length: N }, (_, c) => isHole(r, c) ? 1 : -1));
+  board[C][C] = 0; history = []; path = []; moves = jumps = undos = hints = 0; render();
+  flushQueue().finally(loadBoard);
+  askName();
 })();
 </script>
 </body>
